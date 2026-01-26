@@ -12,55 +12,291 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better styling
+# Enhanced Aesthetic CSS with Complementary Colors (Blue & Orange)
 st.markdown("""
 <style>
+    /* Main Colors: Blue (#1E3A8A) and Complementary Orange (#F97316) */
+    :root {
+        --primary-blue: #1E3A8A;
+        --secondary-blue: #3B82F6;
+        --light-blue: #EFF6FF;
+        --accent-orange: #F97316;
+        --light-orange: #FFEDD5;
+        --dark-gray: #374151;
+        --light-gray: #F9FAFB;
+        --white: #FFFFFF;
+    }
+    
+    .stApp {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+    
+    /* Main Header */
     .main-header {
-        font-size: 2.5rem;
-        color: #1E3A8A;
+        font-size: 2.8rem;
+        color: var(--primary-blue);
         text-align: center;
-        padding: 1rem;
-        background-color: #F0F9FF;
-        border-radius: 10px;
-        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--white) 0%, var(--light-blue) 100%);
+        border-radius: 16px;
+        margin-bottom: 2.5rem;
+        box-shadow: 0 4px 20px rgba(30, 58, 138, 0.1);
+        border: 2px solid var(--secondary-blue);
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        position: relative;
+        overflow: hidden;
     }
+    
+    .main-header::before {
+        content: "⛪";
+        position: absolute;
+        right: 30px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 3rem;
+        opacity: 0.1;
+    }
+    
+    /* Section Headers */
     .section-header {
-        font-size: 1.8rem;
-        color: #1E3A8A;
-        background-color: #EFF6FF;
-        padding: 0.5rem 1rem;
-        border-radius: 5px;
-        margin-top: 2rem;
+        font-size: 1.9rem;
+        color: var(--primary-blue);
+        background: linear-gradient(90deg, var(--light-blue) 0%, var(--white) 100%);
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-top: 2.5rem;
+        margin-bottom: 1.5rem;
+        border-left: 6px solid var(--accent-orange);
+        box-shadow: 0 2px 12px rgba(30, 58, 138, 0.08);
+        font-weight: 600;
     }
+    
+    /* Subsection Headers */
     .subsection-header {
-        font-size: 1.4rem;
-        color: #1D4ED8;
-        padding: 0.5rem;
-        border-left: 4px solid #3B82F6;
+        font-size: 1.5rem;
+        color: var(--dark-gray);
+        padding: 0.8rem 1.2rem;
+        border-left: 4px solid var(--secondary-blue);
+        background: var(--white);
+        border-radius: 8px;
+        margin-top: 1.8rem;
+        margin-bottom: 1rem;
+        font-weight: 500;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
     }
+    
+    /* Card Style for Input Groups */
+    .input-card {
+        background: var(--white);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+    
+    .input-card:hover {
+        box-shadow: 0 4px 20px rgba(30, 58, 138, 0.12);
+        transform: translateY(-2px);
+    }
+    
+    /* Required Field */
     .required-field::after {
         content: " *";
-        color: red;
+        color: #EF4444;
+        font-weight: bold;
     }
+    
+    /* Signature Area */
     .signature-area {
-        border: 2px dashed #ccc;
-        padding: 20px;
-        margin: 10px 0;
+        background: linear-gradient(135deg, var(--light-blue) 0%, var(--white) 100%);
+        border: 2px dashed var(--secondary-blue);
+        padding: 1.5rem;
+        margin: 1rem 0;
         text-align: center;
-        min-height: 100px;
+        min-height: 120px;
+        border-radius: 12px;
+        transition: all 0.3s ease;
     }
+    
+    .signature-area:hover {
+        border-color: var(--accent-orange);
+        background: linear-gradient(135deg, var(--light-orange) 0%, var(--white) 100%);
+    }
+    
+    /* Download Button */
     .download-btn {
-        background-color: #4CAF50;
+        background: linear-gradient(135deg, var(--accent-orange) 0%, #EA580C 100%);
         color: white;
-        padding: 12px 24px;
+        padding: 14px 28px;
         border: none;
-        border-radius: 5px;
+        border-radius: 10px;
         cursor: pointer;
         font-size: 16px;
+        font-weight: 600;
         margin: 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
     }
+    
     .download-btn:hover {
-        background-color: #45a049;
+        background: linear-gradient(135deg, #EA580C 0%, #C2410C 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    /* Sidebar Styling */
+    .css-1d391kg {
+        background: linear-gradient(180deg, var(--primary-blue) 0%, #1E40AF 100%);
+    }
+    
+    /* Metric Cards */
+    .metric-card {
+        background: var(--white);
+        padding: 1.2rem;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+        border-top: 4px solid var(--accent-orange);
+        transition: all 0.3s ease;
+    }
+    
+    .metric-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    }
+    
+    /* Tab Styling */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        background-color: var(--light-blue);
+        border-radius: 8px 8px 0 0;
+        padding: 12px 24px;
+        font-weight: 500;
+        border: 1px solid #e5e7eb;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background-color: var(--primary-blue) !important;
+        color: white !important;
+    }
+    
+    /* Progress Bar */
+    .progress-container {
+        background: var(--light-blue);
+        border-radius: 10px;
+        padding: 3px;
+        margin: 20px 0;
+    }
+    
+    .progress-bar {
+        height: 10px;
+        background: linear-gradient(90deg, var(--accent-orange) 0%, var(--secondary-blue) 100%);
+        border-radius: 8px;
+        transition: width 0.5s ease;
+    }
+    
+    /* Success Message */
+    .success-message {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        color: white;
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        text-align: center;
+        font-weight: 500;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    
+    /* Warning/Info Message */
+    .info-message {
+        background: linear-gradient(135deg, var(--light-blue) 0%, #DBEAFE 100%);
+        color: var(--primary-blue);
+        padding: 1rem;
+        border-radius: 10px;
+        margin: 1rem 0;
+        border-left: 4px solid var(--secondary-blue);
+        font-weight: 500;
+    }
+    
+    /* Footer Styling */
+    .footer {
+        background: linear-gradient(135deg, var(--primary-blue) 0%, #1E40AF 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 3rem;
+        text-align: center;
+        box-shadow: 0 -4px 20px rgba(30, 58, 138, 0.2);
+    }
+    
+    /* Icon Styling */
+    .section-icon {
+        color: var(--accent-orange);
+        margin-right: 10px;
+        font-size: 1.4em;
+    }
+    
+    /* Custom Button */
+    .custom-button {
+        background: linear-gradient(135deg, var(--secondary-blue) 0%, var(--primary-blue) 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .custom-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+    
+    /* Data Editor Styling */
+    .dataframe {
+        border-radius: 10px !important;
+        overflow: hidden !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+    }
+    
+    /* Form Input Focus */
+    .stTextInput input:focus, .stTextArea textarea:focus, .stNumberInput input:focus, .stDateInput input:focus {
+        border-color: var(--accent-orange) !important;
+        box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2) !important;
+    }
+    
+    /* Status Indicator */
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 8px;
+    }
+    
+    .status-complete {
+        background-color: #10B981;
+    }
+    
+    .status-in-progress {
+        background-color: #F59E0B;
+    }
+    
+    .status-pending {
+        background-color: #EF4444;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -70,6 +306,17 @@ if 'reports' not in st.session_state:
     st.session_state.reports = {}
 if 'current_year' not in st.session_state:
     st.session_state.current_year = datetime.now().year
+if 'completion_status' not in st.session_state:
+    st.session_state.completion_status = {
+        'church_info': False,
+        'council_report': False,
+        'lay_organizations': False,
+        'trustees': False,
+        'kindergarten': False,
+        'workers': False,
+        'leadership': False,
+        'appendices': False
+    }
 
 # Initialize dataframes in session state
 if 'strategic_df' not in st.session_state:
@@ -149,14 +396,19 @@ if 'appendix_df' not in st.session_state:
 def create_downloadable_report():
     """Generate the complete report as a downloadable file"""
     
+    # Calculate completion percentage
+    completed_sections = sum(st.session_state.completion_status.values())
+    total_sections = len(st.session_state.completion_status)
+    completion_percentage = (completed_sections / total_sections) * 100
+    
     # Create a comprehensive report
     report_content = []
     
-    # Church Information
+    # Header with completion status
     report_content.append("=" * 80)
-    report_content.append("CHURCH ANNUAL REPORT")
+    report_content.append(f"CHURCH ANNUAL REPORT - COMPLETION: {completion_percentage:.1f}%")
     report_content.append("=" * 80)
-    report_content.append(f"\nReport Date: {datetime.now().strftime('%B %d, %Y')}")
+    report_content.append(f"\nGenerated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}")
     report_content.append(f"Reporting Year: {st.session_state.current_year}-{st.session_state.current_year + 1}")
     report_content.append("\n" + "=" * 80)
     
@@ -263,7 +515,7 @@ def create_downloadable_report():
     report_content.append(f"Date: {st.session_state.get('secretary_date', '')}")
     
     report_content.append("\n" + "=" * 80)
-    report_content.append("\nEND OF REPORT")
+    report_content.append(f"\nREPORT STATUS: {completion_percentage:.1f}% COMPLETE")
     report_content.append("=" * 80)
     
     # Convert to string
@@ -274,176 +526,321 @@ def create_downloadable_report():
     
     # Generate filename
     church_name = st.session_state.get('church_name', 'Church').replace(" ", "_")
-    filename = f"{church_name}_Annual_Report_{datetime.now().strftime('%Y%m%d')}.txt"
+    filename = f"{church_name}_Annual_Report_{datetime.now().strftime('%Y%m%d_%H%M')}.txt"
     
-    # Create download link
-    href = f'<a href="data:file/txt;base64,{b64}" download="{filename}" class="download-btn">📥 Download Complete Report</a>'
-    return href, full_report
+    return b64, filename, full_report, completion_percentage
 
-# Main header
-st.markdown('<div class="main-header">⛪ Church Annual Report System</div>', unsafe_allow_html=True)
+# Function to update completion status
+def update_completion_status(section, is_complete):
+    st.session_state.completion_status[section] = is_complete
 
-# Sidebar navigation
+# Main header with elegant design
+st.markdown("""
+<div class="main-header">
+    ⛪ Church Annual Report System
+    <div style="font-size: 1.2rem; color: #6B7280; margin-top: 10px; font-weight: 400;">
+        Comprehensive Reporting Tool for Church Administration
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+# Calculate completion percentage
+completed_sections = sum(st.session_state.completion_status.values())
+total_sections = len(st.session_state.completion_status)
+completion_percentage = (completed_sections / total_sections) * 100
+
+# Progress bar at the top
+st.markdown(f"""
+<div class="progress-container">
+    <div class="progress-bar" style="width: {completion_percentage}%;"></div>
+</div>
+<div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+    <span style="color: #374151; font-weight: 500;">Report Completion</span>
+    <span style="color: #1E3A8A; font-weight: 600;">{completion_percentage:.1f}% Complete</span>
+</div>
+""", unsafe_allow_html=True)
+
+# Sidebar navigation with enhanced design
 with st.sidebar:
-    st.image("https://img.icons8.com/color/96/000000/church.png", width=100)
-    st.title("Navigation")
+    # Church logo/icon
+    st.markdown("""
+    <div style="text-align: center; margin-bottom: 30px;">
+        <div style="background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%); 
+                    width: 80px; height: 80px; border-radius: 20px; 
+                    display: flex; align-items: center; justify-content: center; 
+                    margin: 0 auto 15px; box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);">
+            <span style="font-size: 40px; color: white;">⛪</span>
+        </div>
+        <h3 style="color: white; margin: 0;">Church Reports</h3>
+        <p style="color: #DBEAFE; margin: 5px 0 0;">Administrative Portal</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    # Navigation
+    st.markdown("### 📋 Navigation")
     report_section = st.selectbox(
         "Select Report Section",
-        ["Church Information", "Church Council Report", "Lay Organizations", 
-         "Structural Development", "Board of Trustees", "Kindergarten Committee",
-         "Grade Schools", "Church Workers", "Leadership", "Youth Ministry", "Appendices"]
+        ["📋 Church Information", "📊 Church Council Report", "👥 Lay Organizations", 
+         "🏛️ Board of Trustees", "🏫 Kindergarten Committee", "📚 Grade Schools",
+         "👨‍💼 Church Workers", "👑 Leadership", "🙋 Youth Ministry", "📎 Appendices"],
+        label_visibility="collapsed"
     )
     
+    # Extract section name for logic
+    section_map = {
+        "📋 Church Information": "church_info",
+        "📊 Church Council Report": "council_report",
+        "👥 Lay Organizations": "lay_organizations",
+        "🏛️ Board of Trustees": "trustees",
+        "🏫 Kindergarten Committee": "kindergarten",
+        "📚 Grade Schools": "grade_schools",
+        "👨‍💼 Church Workers": "workers",
+        "👑 Leadership": "leadership",
+        "🙋 Youth Ministry": "youth_ministry",
+        "📎 Appendices": "appendices"
+    }
+    
+    current_section_key = section_map[report_section]
+    
     st.divider()
-    st.info(f"Reporting Year: {st.session_state.current_year}-{st.session_state.current_year+1}")
     
-    # Download section in sidebar
+    # Status indicators
+    st.markdown("### 📈 Completion Status")
+    for section, status in st.session_state.completion_status.items():
+        status_color = "#10B981" if status else "#9CA3AF"
+        status_text = "✓" if status else "○"
+        section_name = section.replace("_", " ").title()
+        st.markdown(f"""
+        <div style="display: flex; align-items: center; margin: 8px 0;">
+            <span style="color: {status_color}; font-size: 1.2rem; margin-right: 10px;">{status_text}</span>
+            <span style="color: #E5E7EB;">{section_name}</span>
+        </div>
+        """, unsafe_allow_html=True)
+    
     st.divider()
-    st.markdown("### 📊 Report Generation")
     
-    if st.button("🔄 Refresh Report Preview"):
-        st.rerun()
+    # Year and date info
+    st.markdown(f"""
+    <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px;">
+        <p style="color: #DBEAFE; margin: 0; font-weight: 500;">📅 Reporting Year</p>
+        <p style="color: white; font-size: 1.4rem; margin: 5px 0; font-weight: 600;">
+            {st.session_state.current_year}-{st.session_state.current_year+1}
+        </p>
+        <p style="color: #DBEAFE; margin: 5px 0 0; font-size: 0.9rem;">
+            {datetime.now().strftime('%B %d, %Y')}
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Always show download button in sidebar
-    st.markdown("---")
-    st.markdown("### 📥 Download Options")
+    st.divider()
     
-    # Generate download link
-    download_link, report_content = create_downloadable_report()
-    st.markdown(download_link, unsafe_allow_html=True)
+    # Download section
+    st.markdown("### 📥 Export Report")
     
-    # Also show preview option
-    if st.button("👁️ Preview Report"):
-        st.session_state.show_preview = True
+    if st.button("🔄 Generate Full Report", use_container_width=True):
+        st.session_state.generate_report = True
+    
+    # Always show download button
+    b64, filename, report_content, completion_percentage = create_downloadable_report()
+    href = f'<a href="data:file/txt;base64,{b64}" download="{filename}" class="download-btn">📥 Download Complete Report</a>'
+    st.markdown(href, unsafe_allow_html=True)
+    
+    if completion_percentage < 100:
+        st.warning(f"Report is {completion_percentage:.1f}% complete. Some sections may be missing.")
 
 # Main content based on selected section
-if report_section == "Church Information":
-    st.markdown('<div class="section-header">📋 Church Basic Information</div>', unsafe_allow_html=True)
+if "Church Information" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">📋</span> Church Basic Information</div>', unsafe_allow_html=True)
+    
+    # Completion check
+    def check_church_info_completion():
+        required_fields = ['church_name', 'district', 'annual_conference', 'pastor_name', 'council_chairperson']
+        is_complete = all(st.session_state.get(field, '') != '' for field in required_fields)
+        update_completion_status('church_info', is_complete)
     
     col1, col2 = st.columns(2)
     with col1:
-        church_name = st.text_input("Church Name *", key="church_name")
-        district = st.text_input("District *", key="district")
-        annual_conference = st.text_input("Annual Conference *", key="annual_conference")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            church_name = st.text_input("Church Name *", key="church_name", on_change=check_church_info_completion)
+            district = st.text_input("District *", key="district", on_change=check_church_info_completion)
+            annual_conference = st.text_input("Annual Conference *", key="annual_conference", on_change=check_church_info_completion)
+            st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        pastor_name = st.text_input("Pastor Name *", key="pastor_name")
-        council_chairperson = st.text_input("Church Council Chairperson *", key="council_chairperson")
-        report_date = st.date_input("Report Date *", datetime.now(), key="report_date")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            pastor_name = st.text_input("Pastor Name *", key="pastor_name", on_change=check_church_info_completion)
+            council_chairperson = st.text_input("Church Council Chairperson *", key="council_chairperson", on_change=check_church_info_completion)
+            report_date = st.date_input("Report Date *", datetime.now(), key="report_date")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Vision, Mission, Core Values
-    st.markdown('<div class="subsection-header">Vision, Mission & Core Values</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">🌟</span> Vision, Mission & Core Values</div>', unsafe_allow_html=True)
     
-    vision = st.text_area("Annual Conference Vision *", height=80, key="vision")
-    mission = st.text_area("Annual Conference Mission *", height=80, key="mission")
-    core_values = st.text_area("Annual Conference Core Values *", height=80, key="core_values")
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        vision = st.text_area("Annual Conference Vision *", height=100, key="vision", on_change=check_church_info_completion)
+        mission = st.text_area("Annual Conference Mission *", height=100, key="mission", on_change=check_church_info_completion)
+        core_values = st.text_area("Annual Conference Core Values *", height=100, key="core_values", on_change=check_church_info_completion)
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    local_vision = st.text_area("Local Church Vision (if different)", height=80, key="local_vision")
-    local_mission = st.text_area("Local Church Mission (if different)", height=80, key="local_mission")
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        st.markdown("#### Local Church Vision & Mission (Optional)")
+        local_vision = st.text_area("Local Church Vision (if different)", height=80, key="local_vision")
+        local_mission = st.text_area("Local Church Mission (if different)", height=80, key="local_mission")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-elif report_section == "Church Council Report":
-    st.markdown('<div class="section-header">📊 Church Council Chairperson Report</div>', unsafe_allow_html=True)
+elif "Church Council Report" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">📊</span> Church Council Chairperson Report</div>', unsafe_allow_html=True)
     
     # Strategic Plan in Tabular Form
-    st.markdown('<div class="subsection-header">Strategic Plan (Tabular Form)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">🎯</span> Strategic Plan (Tabular Form)</div>', unsafe_allow_html=True)
     
-    # Use session state dataframe
-    edited_strategic = st.data_editor(
-        st.session_state.strategic_df, 
-        num_rows="dynamic", 
-        use_container_width=True,
-        key="strategic_editor"
-    )
-    st.session_state.strategic_df = edited_strategic
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        edited_strategic = st.data_editor(
+            st.session_state.strategic_df, 
+            num_rows="dynamic", 
+            use_container_width=True,
+            key="strategic_editor"
+        )
+        st.session_state.strategic_df = edited_strategic
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Meetings Information
-    st.markdown('<div class="subsection-header">Meetings Information</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">📅</span> Meetings Information</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        num_regular_meetings = st.number_input("Number of Regular Meetings", min_value=0, value=12, key="num_meetings")
-        num_special_meetings = st.number_input("Number of Special Meetings", min_value=0, value=0, key="num_special")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            num_regular_meetings = st.number_input("Number of Regular Meetings", min_value=0, value=12, key="num_meetings")
+            num_special_meetings = st.number_input("Number of Special Meetings", min_value=0, value=0, key="num_special")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        average_attendance = st.number_input("Average Attendance (%)", min_value=0, max_value=100, value=85, key="avg_attendance")
-        quorum_achieved = st.selectbox("Quorum Achieved?", ["Always", "Mostly", "Sometimes", "Rarely"], key="quorum")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            average_attendance = st.number_input("Average Attendance (%)", min_value=0, max_value=100, value=85, key="avg_attendance")
+            quorum_achieved = st.selectbox("Quorum Achieved?", ["Always", "Mostly", "Sometimes", "Rarely"], key="quorum")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Key Decisions
-    st.text_area("Key Decisions Made by Church Council", height=150, key="key_decisions")
+    st.markdown('<div class="subsection-header"><span class="section-icon">💡</span> Key Decisions</div>', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        key_decisions = st.text_area("Key Decisions Made by Church Council", height=150, key="key_decisions", 
+                                   placeholder="Enter key decisions and resolutions made during council meetings...")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Update completion status
+    update_completion_status('council_report', len(key_decisions) > 0)
 
-elif report_section == "Lay Organizations":
-    st.markdown('<div class="section-header">👥 Lay Organizations Consolidated Report</div>', unsafe_allow_html=True)
+elif "Lay Organizations" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">👥</span> Lay Organizations Consolidated Report</div>', unsafe_allow_html=True)
     
     # Lay Organizations Table
-    edited_lay = st.data_editor(
-        st.session_state.lay_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="lay_editor"
-    )
-    st.session_state.lay_df = edited_lay
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        edited_lay = st.data_editor(
+            st.session_state.lay_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="lay_editor"
+        )
+        st.session_state.lay_df = edited_lay
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Programs and Activities Summary
-    st.markdown('<div class="subsection-header">Consolidated Programs & Activities</div>', unsafe_allow_html=True)
-    programs_summary = st.text_area("Summary of all lay organization programs and activities", height=150, key="programs_summary")
+    st.markdown('<div class="subsection-header"><span class="section-icon">📋</span> Consolidated Programs & Activities</div>', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        programs_summary = st.text_area("Summary of all lay organization programs and activities", height=150, key="programs_summary",
+                                      placeholder="Summarize the key programs, activities, and achievements of all lay organizations...")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Update completion status
+    update_completion_status('lay_organizations', len(programs_summary) > 0)
 
-elif report_section == "Board of Trustees":
-    st.markdown('<div class="section-header">🏛️ Board of Trustees Report</div>', unsafe_allow_html=True)
+elif "Board of Trustees" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">🏛️</span> Board of Trustees Report</div>', unsafe_allow_html=True)
     
     # Property Acquisition
-    st.markdown('<div class="subsection-header">Property Acquisition (Tabular Form)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">🏠</span> Property Acquisition (Tabular Form)</div>', unsafe_allow_html=True)
     
-    edited_trustee = st.data_editor(
-        st.session_state.trustee_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="trustee_editor"
-    )
-    st.session_state.trustee_df = edited_trustee
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        edited_trustee = st.data_editor(
+            st.session_state.trustee_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="trustee_editor"
+        )
+        st.session_state.trustee_df = edited_trustee
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Instructions
+    # Instructions in info card
     st.markdown("""
-    **Required Information:**
-    - a) All church properties acquired after the last charge conference 2024-2025
-    - b) All newly acquired properties this C.Y. 2025-2026 - from June 01, 2025, to present
-    - c) DATE ACQUIRED, SPECIFIC PROJECT, FUNDING (Donation/Gen. Fund) COST OF CT
-    - d) TOTAL COST
-    - e) Must present Inventory Book of Properties: Church, School, Parsonage, Deaconess Quarters
-    """)
+    <div class="info-message">
+        <strong>📋 Required Information:</strong><br>
+        • All church properties acquired after the last charge conference 2024-2025<br>
+        • All newly acquired properties this C.Y. 2025-2026 - from June 01, 2025, to present<br>
+        • DATE ACQUIRED, SPECIFIC PROJECT, FUNDING (Donation/Gen. Fund) COST OF CT<br>
+        • TOTAL COST<br>
+        • Must present Inventory Book of Properties: Church, School, Parsonage, Deaconess Quarters
+    </div>
+    """, unsafe_allow_html=True)
     
     # Inventory Upload
-    st.markdown('<div class="subsection-header">Inventory Upload</div>', unsafe_allow_html=True)
-    inventory_files = st.file_uploader("Upload Inventory Book/Sheets", 
-                                     type=['pdf', 'xlsx', 'xls', 'docx'],
-                                     accept_multiple_files=True,
-                                     key="inventory_upload")
+    st.markdown('<div class="subsection-header"><span class="section-icon">📎</span> Inventory Upload</div>', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        inventory_files = st.file_uploader("Upload Inventory Book/Sheets", 
+                                         type=['pdf', 'xlsx', 'xls', 'docx'],
+                                         accept_multiple_files=True,
+                                         key="inventory_upload")
+        
+        if inventory_files:
+            st.success(f"✅ {len(inventory_files)} file(s) uploaded successfully")
+            st.markdown('<div class="success-message">Files uploaded and attached to report</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    if inventory_files:
-        st.success(f"{len(inventory_files)} file(s) uploaded successfully")
+    # Update completion status
+    has_data = not st.session_state.trustee_df['Property Description'].isna().all()
+    update_completion_status('trustees', has_data)
 
-elif report_section == "Kindergarten Committee":
-    st.markdown('<div class="section-header">🏫 Kindergarten Committee Report</div>', unsafe_allow_html=True)
+elif "Kindergarten Committee" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">🏫</span> Kindergarten Committee Report</div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.subheader("Nursery")
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        st.markdown("#### 👶 Nursery")
         nursery_enrolled = st.number_input("No. of pupils enrolled", min_value=0, key="nursery_enrolled")
         nursery_transferred_in = st.number_input("Transferred in", min_value=0, key="nursery_in")
         nursery_transferred_out = st.number_input("Transferred out", min_value=0, key="nursery_out")
         nursery_dropouts = st.number_input("Dropouts", min_value=0, key="nursery_dropouts")
         nursery_current = st.number_input("Current no. of pupils", min_value=0, key="nursery_current")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.subheader("Kindergarten")
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        st.markdown("#### 🧒 Kindergarten")
         kinder_enrolled = st.number_input("No. of pupils enrolled", min_value=0, key="kinder_enrolled")
         kinder_transferred_in = st.number_input("Transferred in", min_value=0, key="kinder_in")
         kinder_transferred_out = st.number_input("Transferred out", min_value=0, key="kinder_out")
         kinder_dropouts = st.number_input("Dropouts", min_value=0, key="kinder_dropouts")
         kinder_current = st.number_input("Current no. of pupils", min_value=0, key="kinder_current")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
-        st.subheader("Administrative")
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        st.markdown("#### 📋 Administrative")
         status = st.selectbox("Status", 
                             ["Registered", "Recognized", "Permit to Operate", "Pending"],
                             key="school_status")
@@ -451,27 +848,51 @@ elif report_section == "Kindergarten Committee":
         
         if has_scholarships == "Yes":
             scholarship_details = st.text_area("Scholarship details", key="scholarship_details")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # School Programs
-    st.markdown('<div class="subsection-header">School Programs</div>', unsafe_allow_html=True)
-    school_programs = st.text_area("List school programs and activities", height=100, key="school_programs")
+    st.markdown('<div class="subsection-header"><span class="section-icon">📚</span> School Programs</div>', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        school_programs = st.text_area("List school programs and activities", height=100, key="school_programs",
+                                     placeholder="List educational programs, extracurricular activities, special events...")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Financial Information
-    st.markdown('<div class="subsection-header">Financial Information</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">💰</span> Financial Information</div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        reg_fee = st.number_input("Registration Fee (₱)", min_value=0.0, key="reg_fee")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            reg_fee = st.number_input("Registration Fee (₱)", min_value=0.0, key="reg_fee")
+            st.markdown('</div>', unsafe_allow_html=True)
     with col2:
-        misc_fee = st.number_input("Miscellaneous Fee (₱)", min_value=0.0, key="misc_fee")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            misc_fee = st.number_input("Miscellaneous Fee (₱)", min_value=0.0, key="misc_fee")
+            st.markdown('</div>', unsafe_allow_html=True)
     with col3:
-        tuition_fee = st.number_input("Monthly Tuition Fee (₱)", min_value=0.0, key="tuition_fee")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            tuition_fee = st.number_input("Monthly Tuition Fee (₱)", min_value=0.0, key="tuition_fee")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Financial Report Upload
-    financial_report = st.file_uploader("Upload Financial Statements", type=['pdf', 'xlsx', 'xls'], key="financial_upload")
+    st.markdown('<div class="subsection-header"><span class="section-icon">📄</span> Financial Statements</div>', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        financial_report = st.file_uploader("Upload Financial Statements", type=['pdf', 'xlsx', 'xls'], key="financial_upload")
+        if financial_report:
+            st.success("✅ Financial statements uploaded successfully")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Update completion status
+    has_enrollment = (nursery_enrolled > 0 or kinder_enrolled > 0)
+    update_completion_status('kindergarten', has_enrollment)
 
-elif report_section == "Grade Schools":
-    st.markdown('<div class="section-header">📚 Grade Schools Report</div>', unsafe_allow_html=True)
+elif "Grade Schools" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">📚</span> Grade Schools Report</div>', unsafe_allow_html=True)
     
     grade_levels = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"]
     
@@ -486,89 +907,136 @@ elif report_section == "Grade Schools":
     }
     
     grade_df = pd.DataFrame(grade_data)
-    edited_grade = st.data_editor(grade_df, num_rows="dynamic", use_container_width=True, key="grade_editor")
     
-    # Store in session state
-    st.session_state.grade_df = edited_grade
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        edited_grade = st.data_editor(grade_df, num_rows="dynamic", use_container_width=True, key="grade_editor")
+        st.session_state.grade_df = edited_grade
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    # Summary Statistics
+    # Summary Statistics in metric cards
     total_enrolled = edited_grade['Enrolled at Start'].sum()
     total_current = edited_grade['Current Enrollment'].sum()
     total_graduates = edited_grade['Number of Graduates'].sum()
     
+    st.markdown('<div class="subsection-header"><span class="section-icon">📊</span> Summary Statistics</div>', unsafe_allow_html=True)
+    
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Total Enrolled", total_enrolled)
+        st.markdown(f"""
+        <div class="metric-card">
+            <div style="font-size: 0.9rem; color: #6B7280; margin-bottom: 5px;">Total Enrolled</div>
+            <div style="font-size: 2rem; color: #1E3A8A; font-weight: 700;">{total_enrolled}</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col2:
-        st.metric("Current Enrollment", total_current)
+        st.markdown(f"""
+        <div class="metric-card">
+            <div style="font-size: 0.9rem; color: #6B7280; margin-bottom: 5px;">Current Enrollment</div>
+            <div style="font-size: 2rem; color: #1E3A8A; font-weight: 700;">{total_current}</div>
+        </div>
+        """, unsafe_allow_html=True)
     with col3:
-        st.metric("Total Graduates", total_graduates)
+        st.markdown(f"""
+        <div class="metric-card">
+            <div style="font-size: 0.9rem; color: #6B7280; margin-bottom: 5px;">Total Graduates</div>
+            <div style="font-size: 2rem; color: #1E3A8A; font-weight: 700;">{total_graduates}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-elif report_section == "Church Workers":
-    st.markdown('<div class="section-header">👨‍💼 Church Workers Report</div>', unsafe_allow_html=True)
+elif "Church Workers" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">👨‍💼</span> Church Workers Report</div>', unsafe_allow_html=True)
     
     # Pastor Report
-    st.markdown('<div class="subsection-header">Pastor Report</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">🙏</span> Pastor Report</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        church_membership = st.number_input("Total Church Membership", min_value=0, key="membership")
-        pastor_support = st.number_input("Actual Support Received (Monthly ₱)", min_value=0.0, key="pastor_support")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            church_membership = st.number_input("Total Church Membership", min_value=0, key="membership")
+            pastor_support = st.number_input("Actual Support Received (Monthly ₱)", min_value=0.0, key="pastor_support")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        nature_of_work = st.text_area("Nature of Work", height=100, key="pastor_work")
-        additional_info = st.text_area("Additional Information", height=100, key="pastor_additional")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            nature_of_work = st.text_area("Nature of Work", height=100, key="pastor_work")
+            additional_info = st.text_area("Additional Information", height=100, key="pastor_additional")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Deaconess Report
-    st.markdown('<div class="subsection-header">Deaconess Report</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">👩‍⚕️</span> Deaconess Report</div>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     with col1:
-        deaconess_work = st.text_area("Nature of Work", height=100, key="deaconess_work")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            deaconess_work = st.text_area("Nature of Work", height=100, key="deaconess_work")
+            st.markdown('</div>', unsafe_allow_html=True)
     with col2:
-        deaconess_support = st.number_input("Actual Support Received (Monthly ₱)", min_value=0.0, key="deaconess_support")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            deaconess_support = st.number_input("Actual Support Received (Monthly ₱)", min_value=0.0, key="deaconess_support")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Church Workers Relationships
-    st.markdown('<div class="subsection-header">Church Workers Relationships</div>', unsafe_allow_html=True)
-    workers_relationship = st.text_area("State the relationship between church workers", height=100, key="workers_relationship")
+    st.markdown('<div class="subsection-header"><span class="section-icon">🤝</span> Church Workers Relationships</div>', unsafe_allow_html=True)
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        workers_relationship = st.text_area("State the relationship between church workers", height=100, key="workers_relationship")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Church Workers Situation
-    st.markdown('<div class="subsection-header">Church Workers Situation</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">🏠</span> Church Workers Situation</div>', unsafe_allow_html=True)
     
-    housing_situation = st.selectbox("Housing Situation", 
-                                    ["Provided by Church", "Rented with Allowance", "Own House", "Other"],
-                                    key="housing")
-    support_situation = st.text_area("Support received (cash/in-kind) as mandated by Annual Conference", 
-                                   height=100, key="support_situation")
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        housing_situation = st.selectbox("Housing Situation", 
+                                        ["Provided by Church", "Rented with Allowance", "Own House", "Other"],
+                                        key="housing")
+        support_situation = st.text_area("Support received (cash/in-kind) as mandated by Annual Conference", 
+                                       height=100, key="support_situation")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Recommendations
-    st.markdown('<div class="subsection-header">Recommendations</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">📋</span> Recommendations</div>', unsafe_allow_html=True)
     
-    ministry_entrants = st.text_area("Recommend those who want to enter ministry (Pastor, Deaconess, Lay Minister)", 
-                                    height=100, key="ministry_entrants")
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        ministry_entrants = st.text_area("Recommend those who want to enter ministry (Pastor, Deaconess, Lay Minister)", 
+                                        height=100, key="ministry_entrants")
+        
+        lay_servants = st.text_area("Recommend those who want to be added as Lay Servant Ministers", 
+                                   height=100, key="lay_servants")
+        
+        worker_benefits = st.text_area("Recommend church workers support and other benefits", 
+                                      height=100, key="worker_benefits")
+        st.markdown('</div>', unsafe_allow_html=True)
     
-    lay_servants = st.text_area("Recommend those who want to be added as Lay Servant Ministers", 
-                               height=100, key="lay_servants")
-    
-    worker_benefits = st.text_area("Recommend church workers support and other benefits", 
-                                  height=100, key="worker_benefits")
+    # Update completion status
+    has_worker_info = (church_membership > 0 or len(nature_of_work) > 0 or len(deaconess_work) > 0)
+    update_completion_status('workers', has_worker_info)
 
-elif report_section == "Leadership":
-    st.markdown('<div class="section-header">👑 Leadership 2026-2027</div>', unsafe_allow_html=True)
+elif "Leadership" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">👑</span> Leadership 2026-2027</div>', unsafe_allow_html=True)
     
     # Church Council Officers
-    st.markdown('<div class="subsection-header">Church Council Officers (CY 2026-2027)</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">👥</span> Church Council Officers (CY 2026-2027)</div>', unsafe_allow_html=True)
     
-    edited_leadership = st.data_editor(
-        st.session_state.leadership_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="leadership_editor"
-    )
-    st.session_state.leadership_df = edited_leadership
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        edited_leadership = st.data_editor(
+            st.session_state.leadership_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="leadership_editor"
+        )
+        st.session_state.leadership_df = edited_leadership
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Committee Members
-    st.markdown('<div class="subsection-header">Committee Chairpersons & Members</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">📋</span> Committee Chairpersons & Members</div>', unsafe_allow_html=True)
     
     committees = [
         'Worship Committee',
@@ -588,118 +1056,210 @@ elif report_section == "Leadership":
     }
     
     committee_df = pd.DataFrame(committee_data)
-    edited_committee = st.data_editor(committee_df, num_rows="dynamic", use_container_width=True, key="committee_editor")
-    st.session_state.committee_df = edited_committee
+    
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        edited_committee = st.data_editor(committee_df, num_rows="dynamic", use_container_width=True, key="committee_editor")
+        st.session_state.committee_df = edited_committee
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Update completion status
+    has_leadership_data = not st.session_state.leadership_df['Name'].isna().all()
+    update_completion_status('leadership', has_leadership_data)
 
-elif report_section == "Youth Ministry":
-    st.markdown('<div class="section-header">🙋 Youth Ministry Report</div>', unsafe_allow_html=True)
-    
-    # Youth Group Information
-    col1, col2 = st.columns(2)
-    with col1:
-        youth_president = st.text_input("Youth President", key="youth_president")
-        youth_contact = st.text_input("Contact Number", key="youth_contact")
-        total_youth = st.number_input("Total Youth Members", min_value=0, key="total_youth")
-    
-    with col2:
-        active_youth = st.number_input("Active Youth Members", min_value=0, key="active_youth")
-        regular_meetings = st.text_input("Regular Meeting Schedule", key="youth_meetings")
-        average_attendance = st.number_input("Average Attendance", min_value=0, key="youth_attendance")
-    
-    # Youth Programs
-    st.markdown('<div class="subsection-header">Youth Ministry Programs & Activities</div>', unsafe_allow_html=True)
-    youth_programs = st.text_area("List all youth programs and activities", height=150, key="youth_programs")
-    
-    # Ministry Involvement
-    st.markdown('<div class="subsection-header">Youth Involvement in Church Ministry</div>', unsafe_allow_html=True)
-    ministry_involvement = st.text_area("Describe youth involvement in church ministry (Paragraphs 266-268)", 
-                                      height=150, key="ministry_involvement")
-
-elif report_section == "Appendices":
-    st.markdown('<div class="section-header">📎 Appendices</div>', unsafe_allow_html=True)
+elif "Appendices" in report_section:
+    st.markdown('<div class="section-header"><span class="section-icon">📎</span> Appendices</div>', unsafe_allow_html=True)
     
     # Lay Organization Officers with Contacts
-    st.markdown('<div class="subsection-header">Lay Organization Officers Contact List</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">📞</span> Lay Organization Officers Contact List</div>', unsafe_allow_html=True)
     
-    edited_appendix = st.data_editor(
-        st.session_state.appendix_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        key="appendix_editor"
-    )
-    st.session_state.appendix_df = edited_appendix
+    with st.container():
+        st.markdown('<div class="input-card">', unsafe_allow_html=True)
+        edited_appendix = st.data_editor(
+            st.session_state.appendix_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            key="appendix_editor"
+        )
+        st.session_state.appendix_df = edited_appendix
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Membership Statistics
-    st.markdown('<div class="subsection-header">Membership Statistics</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">📊</span> Membership Statistics</div>', unsafe_allow_html=True)
     
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         professing = st.number_input("Professing Members", min_value=0, key="professing")
+        st.markdown('</div>', unsafe_allow_html=True)
     with col2:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         baptized = st.number_input("Baptized Members", min_value=0, key="baptized")
+        st.markdown('</div>', unsafe_allow_html=True)
     with col3:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         affiliate = st.number_input("Affiliate Members", min_value=0, key="affiliate")
+        st.markdown('</div>', unsafe_allow_html=True)
     with col4:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         associate = st.number_input("Associate Members", min_value=0, key="associate")
+        st.markdown('</div>', unsafe_allow_html=True)
     with col5:
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         constituency = st.number_input("Constituency", min_value=0, key="constituency")
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Audit Confirmation
-    st.markdown('<div class="subsection-header">Audit Confirmation</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">✅</span> Audit Confirmation</div>', unsafe_allow_html=True)
+    
     col1, col2, col3 = st.columns(3)
     with col1:
-        audit_completed = st.radio("Has the membership been audited?", ["Yes", "No"], key="audit")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            audit_completed = st.radio("Has the membership been audited?", ["Yes", "No"], key="audit")
+            st.markdown('</div>', unsafe_allow_html=True)
     with col2:
-        audit_date = st.date_input("Audit Completion Date", key="audit_date")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            audit_date = st.date_input("Audit Completion Date", key="audit_date")
+            st.markdown('</div>', unsafe_allow_html=True)
     with col3:
-        auditor_name = st.text_input("Auditor Name", key="auditor_name")
+        with st.container():
+            st.markdown('<div class="input-card">', unsafe_allow_html=True)
+            auditor_name = st.text_input("Auditor Name", key="auditor_name")
+            st.markdown('</div>', unsafe_allow_html=True)
     
     # Signatures
-    st.markdown('<div class="subsection-header">Signatures</div>', unsafe_allow_html=True)
+    st.markdown('<div class="subsection-header"><span class="section-icon">✍️</span> Signatures</div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown('<div class="signature-area">Church Council Chairperson</div>', unsafe_allow_html=True)
+        st.markdown('<div class="signature-area">', unsafe_allow_html=True)
+        st.markdown("**Church Council Chairperson**")
         council_signature = st.text_input("Name", key="council_signature", label_visibility="collapsed")
         council_date = st.date_input("Date", key="council_date", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
         
     with col2:
-        st.markdown('<div class="signature-area">Administrative Pastor</div>', unsafe_allow_html=True)
+        st.markdown('<div class="signature-area">', unsafe_allow_html=True)
+        st.markdown("**Administrative Pastor**")
         pastor_signature = st.text_input("Name", key="pastor_signature", label_visibility="collapsed")
         pastor_date = st.date_input("Date", key="pastor_date", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
         
     with col3:
-        st.markdown('<div class="signature-area">Secretary</div>', unsafe_allow_html=True)
+        st.markdown('<div class="signature-area">', unsafe_allow_html=True)
+        st.markdown("**Secretary**")
         secretary_signature = st.text_input("Name", key="secretary_signature", label_visibility="collapsed")
         secretary_date = st.date_input("Date", key="secretary_date", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Update completion status
+    has_signatures = (len(council_signature) > 0 or len(pastor_signature) > 0 or len(secretary_signature) > 0)
+    has_membership = (professing > 0 or baptized > 0 or affiliate > 0 or associate > 0 or constituency > 0)
+    update_completion_status('appendices', has_signatures or has_membership)
 
 # Report Preview Section
-if st.session_state.get('show_preview', False):
+if st.session_state.get('generate_report', False):
     st.markdown("---")
-    st.markdown('<div class="section-header">📄 Report Preview</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header"><span class="section-icon">📄</span> Report Preview</div>', unsafe_allow_html=True)
     
     # Generate and show preview
-    _, report_content = create_downloadable_report()
+    b64, filename, report_content, completion_percentage = create_downloadable_report()
+    
+    # Completion status indicator
+    if completion_percentage < 50:
+        status_color = "#EF4444"
+        status_msg = "⚠️ Low Completion"
+    elif completion_percentage < 80:
+        status_color = "#F59E0B"
+        status_msg = "📋 Moderate Completion"
+    else:
+        status_color = "#10B981"
+        status_msg = "✅ High Completion"
+    
+    st.markdown(f"""
+    <div style="background: {status_color}15; border-left: 4px solid {status_color}; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <strong style="color: {status_color};">{status_msg}</strong>
+                <div style="color: #6B7280; font-size: 0.9rem;">Your report is {completion_percentage:.1f}% complete</div>
+            </div>
+            <div style="font-size: 1.5rem; font-weight: 700; color: {status_color};">{completion_percentage:.0f}%</div>
+        </div>
+        <div class="progress-container" style="margin-top: 10px;">
+            <div class="progress-bar" style="width: {completion_percentage}%; background: {status_color};"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
     # Show in expandable preview
-    with st.expander("Click to view full report preview", expanded=True):
+    with st.expander("📋 Click to view full report preview", expanded=True):
         st.text_area("Report Preview", report_content, height=400)
     
-    # Option to close preview
-    if st.button("Close Preview"):
-        st.session_state.show_preview = False
-        st.rerun()
+    # Download buttons in preview
+    col1, col2 = st.columns(2)
+    with col1:
+        href = f'<a href="data:file/txt;base64,{b64}" download="{filename}" class="download-btn">📥 Download Complete Report</a>'
+        st.markdown(href, unsafe_allow_html=True)
+    with col2:
+        if st.button("Close Preview", use_container_width=True):
+            st.session_state.generate_report = False
+            st.rerun()
 
-# Footer
-st.markdown("---")
+# Enhanced Footer
 st.markdown("""
-<div style="text-align: center; color: #666; padding: 20px;">
-    <p>⛪ Church Annual Report System | All reports must be computerized or type written</p>
-    <p><strong>Note:</strong> Committee and board chairpersons and members should sign all reports</p>
-    <p>Reports should be fastened in one folder including workers' reports</p>
-    <p style="color: #dc3545;"><strong>Important:</strong> Product of the Pre-Charge conference is a must.</p>
+<div class="footer">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <div style="text-align: left;">
+            <h4 style="margin: 0; color: white;">⛪ Church Annual Report System</h4>
+            <p style="margin: 5px 0 0; color: #DBEAFE; font-size: 0.9rem;">
+                Comprehensive Reporting Tool for Church Administration
+            </p>
+        </div>
+        <div style="text-align: right;">
+            <p style="margin: 0; color: #DBEAFE; font-size: 0.9rem;">
+                Version 2.0 • {year}
+            </p>
+            <p style="margin: 5px 0 0; color: #DBEAFE; font-size: 0.8rem;">
+                All reports must be computerized or type written
+            </p>
+        </div>
+    </div>
+    <hr style="border-color: rgba(255,255,255,0.2); margin: 20px 0;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: left;">
+        <div>
+            <p style="color: white; font-weight: 500; margin-bottom: 10px;">📋 Requirements</p>
+            <ul style="color: #DBEAFE; font-size: 0.85rem; margin: 0; padding-left: 20px;">
+                <li>Committee signatures required</li>
+                <li>Fasten in one folder</li>
+                <li>Include workers' reports</li>
+            </ul>
+        </div>
+        <div>
+            <p style="color: white; font-weight: 500; margin-bottom: 10px;">✅ Mandatory</p>
+            <ul style="color: #DBEAFE; font-size: 0.85rem; margin: 0; padding-left: 20px;">
+                <li>Pre-Charge conference product</li>
+                <li>Membership audit required</li>
+                <li>Vision & Mission statement</li>
+            </ul>
+        </div>
+        <div>
+            <p style="color: white; font-weight: 500; margin-bottom: 10px;">📞 Contact</p>
+            <p style="color: #DBEAFE; font-size: 0.85rem; margin: 0;">
+                For support and assistance with reporting
+            </p>
+        </div>
+    </div>
 </div>
-""", unsafe_allow_html=True)
+""".format(year=datetime.now().year), unsafe_allow_html=True)
 
 # Information message at the bottom
-st.info("💡 **Tip:** Navigate through all sections using the sidebar, fill in the required information, then download your complete report using the download button in the sidebar.")
+if completion_percentage < 100:
+    st.markdown(f"""
+    <div class="info-message">
+        💡 <strong>Tip:</strong> Your report is {completion_percentage:.1f}% complete. 
+        Navigate through all sections using the sidebar to complete missing information. 
+        Required sections are marked with an asterisk (*).
+    </div>
+    """, unsafe_allow_html=True)
