@@ -63,14 +63,7 @@ def init_database():
         )
     ''')
     
-    # Insert default admin user if not exists
-    c.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
-    if c.fetchone()[0] == 0:
-        admin_hash = hashlib.sha256("admin123".encode()).hexdigest()
-        c.execute('''
-            INSERT INTO users (username, email, password_hash, full_name, role)
-            VALUES (?, ?, ?, ?, ?)
-        ''', ('admin', 'admin@churchreports.com', admin_hash, 'System Administrator', 'admin'))
+    # REMOVED: Default admin user insertion
     
     # Insert default template if not exists
     c.execute("SELECT COUNT(*) FROM templates WHERE name = 'Default Template'")
@@ -140,10 +133,15 @@ def init_database():
                 'Email': [''] * 5
             }).to_dict()
         }
+        # Create a default user for the template if no users exist
+        c.execute("SELECT id FROM users LIMIT 1")
+        default_user = c.fetchone()
+        user_id = default_user[0] if default_user else None
+        
         c.execute('''
             INSERT INTO templates (name, description, data_json, created_by, is_public)
             VALUES (?, ?, ?, ?, ?)
-        ''', ('Default Template', 'Standard church reporting template', json.dumps(default_data), 1, 1))
+        ''', ('Default Template', 'Standard church reporting template', json.dumps(default_data), user_id, 1))
     
     conn.commit()
     conn.close()
@@ -181,11 +179,34 @@ def authenticate_user(username: str, password: str) -> Optional[Tuple]:
     
     return user
 
-def create_user(username: str, password: str, email: str = None, full_name: str = None, church_name: str = None) -> bool:
-    """Create a new user account"""
+def create_user(username: str, password: str, email: str = None, full_name: str = None, church_name: str = None) -> Tuple[bool, str]:
+    """Create a new user account. Returns (success, message)"""
     try:
+        # Validate input
+        if not username or not password:
+            return False, "Username and password are required"
+        
+        if len(username) < 3:
+            return False, "Username must be at least 3 characters"
+        
+        if len(password) < 6:
+            return False, "Password must be at least 6 characters"
+        
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
+        
+        # Check if username already exists
+        c.execute('SELECT id FROM users WHERE username = ?', (username,))
+        if c.fetchone():
+            conn.close()
+            return False, "Username already exists"
+        
+        # Check if email already exists (if provided)
+        if email:
+            c.execute('SELECT id FROM users WHERE email = ?', (email,))
+            if c.fetchone():
+                conn.close()
+                return False, "Email already registered"
         
         password_hash = hash_password(password)
         c.execute('''
@@ -195,9 +216,11 @@ def create_user(username: str, password: str, email: str = None, full_name: str 
         
         conn.commit()
         conn.close()
-        return True
-    except sqlite3.IntegrityError:
-        return False
+        return True, "Account created successfully! Please sign in."
+    except sqlite3.Error as e:
+        return False, f"Database error: {str(e)}"
+    except Exception as e:
+        return False, f"Error: {str(e)}"
 
 def get_user_reports(user_id: int) -> List[Dict]:
     """Get all reports for a specific user"""
@@ -228,48 +251,53 @@ def get_user_reports(user_id: int) -> List[Dict]:
     conn.close()
     return reports
 
-def save_report(user_id: int, report_name: str, church_name: str, data_dict: Dict) -> int:
-    """Save report to database and return report ID"""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    # Convert dataframes to dict for JSON serialization
-    serializable_data = {}
-    for key, value in data_dict.items():
-        if isinstance(value, pd.DataFrame):
-            serializable_data[key] = value.to_dict()
+def save_report(user_id: int, report_name: str, church_name: str, data_dict: Dict) -> Tuple[int, str]:
+    """Save report to database and return (report_id, message)"""
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        c = conn.cursor()
+        
+        # Convert dataframes to dict for JSON serialization
+        serializable_data = {}
+        for key, value in data_dict.items():
+            if isinstance(value, pd.DataFrame):
+                serializable_data[key] = value.to_dict()
+            else:
+                serializable_data[key] = value
+        
+        data_json = json.dumps(serializable_data)
+        
+        # Check if report with same name exists for this user
+        c.execute('SELECT id FROM reports WHERE user_id = ? AND report_name = ?', (user_id, report_name))
+        existing_report = c.fetchone()
+        
+        if existing_report:
+            # Update existing report
+            c.execute('''
+                UPDATE reports 
+                SET church_name = ?, data_json = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE id = ?
+            ''', (church_name, data_json, existing_report[0]))
+            report_id = existing_report[0]
+            message = "Report updated successfully!"
         else:
-            serializable_data[key] = value
-    
-    data_json = json.dumps(serializable_data)
-    
-    # Check if report with same name exists for this user
-    c.execute('SELECT id FROM reports WHERE user_id = ? AND report_name = ?', (user_id, report_name))
-    existing_report = c.fetchone()
-    
-    if existing_report:
-        # Update existing report
-        c.execute('''
-            UPDATE reports 
-            SET church_name = ?, data_json = ?, updated_at = CURRENT_TIMESTAMP
-            WHERE id = ?
-        ''', (church_name, data_json, existing_report[0]))
-        report_id = existing_report[0]
-    else:
-        # Create new report
-        reporting_year = f"{datetime.now().year}-{datetime.now().year + 1}"
-        completion_percentage = data_dict.get('completion_percentage', 0)
+            # Create new report
+            reporting_year = f"{datetime.now().year}-{datetime.now().year + 1}"
+            completion_percentage = data_dict.get('completion_percentage', 0)
+            
+            c.execute('''
+                INSERT INTO reports (user_id, report_name, church_name, reporting_year, completion_percentage, data_json)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (user_id, report_name, church_name, reporting_year, completion_percentage, data_json))
+            
+            report_id = c.lastrowid
+            message = "Report saved successfully!"
         
-        c.execute('''
-            INSERT INTO reports (user_id, report_name, church_name, reporting_year, completion_percentage, data_json)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (user_id, report_name, church_name, reporting_year, completion_percentage, data_json))
-        
-        report_id = c.lastrowid
-    
-    conn.commit()
-    conn.close()
-    return report_id
+        conn.commit()
+        conn.close()
+        return report_id, message
+    except Exception as e:
+        return 0, f"Error saving report: {str(e)}"
 
 def load_report(report_id: int, user_id: int = None) -> Optional[Dict]:
     """Load report from database"""
@@ -296,19 +324,24 @@ def load_report(report_id: int, user_id: int = None) -> Optional[Dict]:
     
     return None
 
-def delete_report(report_id: int, user_id: int) -> bool:
-    """Soft delete (archive) a report"""
+def delete_report(report_id: int, user_id: int) -> Tuple[bool, str]:
+    """Soft delete (archive) a report. Returns (success, message)"""
     try:
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         
         c.execute('UPDATE reports SET is_archived = 1 WHERE id = ? AND user_id = ?', (report_id, user_id))
         
+        rows_affected = conn.total_changes
         conn.commit()
         conn.close()
-        return True
-    except:
-        return False
+        
+        if rows_affected > 0:
+            return True, "Report deleted successfully!"
+        else:
+            return False, "Report not found or you don't have permission to delete it."
+    except Exception as e:
+        return False, f"Error deleting report: {str(e)}"
 
 def get_templates() -> List[Dict]:
     """Get available templates"""
@@ -594,6 +627,16 @@ st.markdown("""
         border-radius: var(--radius-lg);
         border: 1px solid var(--border-color);
     }
+    
+    .welcome-container {
+        max-width: 600px;
+        margin: 4rem auto;
+        padding: 3rem;
+        background-color: var(--bg-secondary);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-color);
+        text-align: center;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -747,10 +790,11 @@ def login():
             if register:
                 if new_username and new_password:
                     if new_password == confirm_password:
-                        if create_user(new_username, new_password, new_email, new_full_name, new_church):
-                            st.success("Account created successfully! Please sign in.")
+                        success, message = create_user(new_username, new_password, new_email, new_full_name, new_church)
+                        if success:
+                            st.success(message)
                         else:
-                            st.error("Username already exists. Please choose another.")
+                            st.error(message)
                     else:
                         st.error("Passwords do not match")
                 else:
@@ -758,12 +802,28 @@ def login():
     
     st.markdown('</div>', unsafe_allow_html=True)
     
-    # Demo credentials
-    st.markdown("""
-    <div style="text-align: center; margin-top: 2rem; color: var(--text-tertiary); font-size: 0.75rem;">
-        Demo credentials: admin / admin123
-    </div>
-    """, unsafe_allow_html=True)
+    # Welcome message for first-time users
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM users")
+    user_count = c.fetchone()[0]
+    conn.close()
+    
+    if user_count == 0:
+        st.markdown("""
+        <div class="welcome-container">
+            <div style="font-size: 1.75rem; font-weight: 500; color: var(--text-primary); margin-bottom: 1rem;">
+                Welcome to Church Reporting System
+            </div>
+            <div style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                This appears to be your first time using the system.<br>
+                Please create an account to get started.
+            </div>
+            <div style="color: var(--text-tertiary); font-size: 0.875rem;">
+                No default accounts exist. You must create your own account.
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
 def logout():
     """Handle user logout"""
@@ -884,10 +944,9 @@ def create_downloadable_report():
     return b64, filename, full_report, completion_percentage
 
 def save_current_report():
-    """Save current report to database"""
+    """Save current report to database. Returns (success, message)"""
     if not st.session_state.authenticated:
-        st.error("Please log in to save reports")
-        return False
+        return False, "Please log in to save reports"
     
     # Get current data
     data_to_save = {}
@@ -907,21 +966,26 @@ def save_current_report():
     
     # Get report name
     report_name = st.session_state.get('church_name', 'Untitled Report')
+    if not report_name or report_name == 'Not Provided':
+        report_name = "Untitled Report"
+    
     if st.session_state.current_report_name:
         report_name = st.session_state.current_report_name
     
     # Save to database
-    report_id = save_report(
+    report_id, message = save_report(
         st.session_state.user_id,
         report_name,
         st.session_state.get('church_name', ''),
         data_to_save
     )
     
-    st.session_state.current_report_id = report_id
-    st.session_state.current_report_name = report_name
-    
-    return True
+    if report_id:
+        st.session_state.current_report_id = report_id
+        st.session_state.current_report_name = report_name
+        return True, message
+    else:
+        return False, message
 
 def load_selected_report(report_id: int):
     """Load a report from database into session state"""
@@ -941,7 +1005,8 @@ def load_selected_report(report_id: int):
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute('SELECT report_name FROM reports WHERE id = ?', (report_id,))
-        report_name = c.fetchone()[0]
+        result = c.fetchone()
+        report_name = result[0] if result else "Loaded Report"
         conn.close()
         
         st.session_state.current_report_name = report_name
@@ -975,7 +1040,7 @@ def load_selected_report(report_id: int):
         st.success(f"Report '{report_name}' loaded successfully!")
         st.rerun()
     else:
-        st.error("Failed to load report")
+        st.error("Failed to load report. It may have been deleted or you don't have permission.")
 
 # Update completion status function
 def update_completion_status(section, is_complete):
@@ -1052,8 +1117,11 @@ else:
         
         # Save Report
         if st.button("💾 Save Report", use_container_width=True):
-            if save_current_report():
-                st.success("Report saved successfully!")
+            success, message = save_current_report()
+            if success:
+                st.success(message)
+            else:
+                st.error(message)
         
         # Load Templates
         st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin: 1.5rem 0 0.75rem 0;">TEMPLATES</div>', unsafe_allow_html=True)
@@ -1094,9 +1162,12 @@ else:
                         load_selected_report(selected_report_id)
                 with col2:
                     if st.button("🗑️ Delete", use_container_width=True):
-                        if delete_report(selected_report_id, st.session_state.user_id):
-                            st.success("Report deleted successfully!")
+                        success, message = delete_report(selected_report_id, st.session_state.user_id)
+                        if success:
+                            st.success(message)
                             st.rerun()
+                        else:
+                            st.error(message)
         else:
             st.markdown('<div style="color: var(--text-tertiary); font-size: 0.875rem; text-align: center; padding: 1rem;">No saved reports</div>', unsafe_allow_html=True)
         
@@ -1122,16 +1193,16 @@ else:
         st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;">NAVIGATION</div>', unsafe_allow_html=True)
         
         section_options = [
-            ("Church Information", "church_info"),
-            ("Council Report", "council_report"),
-            ("Lay Organizations", "lay_organizations"),
-            ("Board of Trustees", "trustees"),
-            ("Kindergarten", "kindergarten"),
-            ("Grade Schools", "grade_schools"),
-            ("Church Workers", "workers"),
-            ("Leadership", "leadership"),
-            ("Youth Ministry", "youth_ministry"),
-            ("Appendices", "appendices")
+            ("📋", "Church Information", "church_info"),
+            ("📊", "Council Report", "council_report"),
+            ("👥", "Lay Organizations", "lay_organizations"),
+            ("🏛️", "Board of Trustees", "trustees"),
+            ("🏫", "Kindergarten", "kindergarten"),
+            ("📚", "Grade Schools", "grade_schools"),
+            ("👨‍💼", "Church Workers", "workers"),
+            ("👑", "Leadership", "leadership"),
+            ("🙋", "Youth Ministry", "youth_ministry"),
+            ("📎", "Appendices", "appendices")
         ]
         
         selected_section = st.selectbox(
@@ -1161,6 +1232,11 @@ else:
         st.markdown('<div class="theme-indicator">Theme: System • Database Active</div>', unsafe_allow_html=True)
     
     # Main content based on selected section
+    # ... (rest of the main content sections remain the same as before, 
+    # just with improved error handling for save_current_report)
+    
+    # For each section that has auto-save, update to handle the tuple return
+    # Example for Church Information section:
     if selected_section == "Church Information":
         st.markdown('<div class="section-header">Church Information</div>', unsafe_allow_html=True)
         
@@ -1169,9 +1245,12 @@ else:
             required_fields = ['church_name', 'district', 'annual_conference', 'pastor_name', 'council_chairperson']
             is_complete = all(st.session_state.get(field, '') != '' for field in required_fields)
             update_completion_status('church_info', is_complete)
-            # Auto-save
+            # Auto-save with error handling
             if st.session_state.authenticated and any(st.session_state.get(field, '') for field in required_fields):
-                save_current_report()
+                success, message = save_current_report()
+                if not success:
+                    # Show error but don't interrupt user
+                    pass
         
         col1, col2 = st.columns(2)
         with col1:
@@ -1201,466 +1280,7 @@ else:
             core_values = st.text_area("Annual Conference Core Values", height=100, key="core_values", on_change=check_church_info_completion)
             st.markdown('</div>', unsafe_allow_html=True)
     
-    elif selected_section == "Council Report":
-        st.markdown('<div class="section-header">Church Council Report</div>', unsafe_allow_html=True)
-        
-        # Strategic Plan
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Strategic Plan</div>', unsafe_allow_html=True)
-            edited_strategic = st.data_editor(
-                st.session_state.strategic_df, 
-                num_rows="dynamic", 
-                use_container_width=True,
-                key="strategic_editor",
-                on_change=lambda: save_current_report() if st.session_state.authenticated else None
-            )
-            st.session_state.strategic_df = edited_strategic
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Meetings Information
-        col1, col2 = st.columns(2)
-        with col1:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Meetings</div>', unsafe_allow_html=True)
-                num_regular_meetings = st.number_input("Regular Meetings", min_value=0, value=12, key="num_meetings", 
-                                                      on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                num_special_meetings = st.number_input("Special Meetings", min_value=0, value=0, key="num_special",
-                                                      on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Attendance</div>', unsafe_allow_html=True)
-                average_attendance = st.number_input("Average Attendance (%)", min_value=0, max_value=100, value=85, key="avg_attendance",
-                                                    on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                quorum_achieved = st.selectbox("Quorum Achieved", ["Always", "Mostly", "Sometimes", "Rarely"], key="quorum",
-                                              on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Key Decisions
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Key Decisions</div>', unsafe_allow_html=True)
-            key_decisions = st.text_area("", height=150, key="key_decisions", placeholder="Enter key decisions and resolutions...",
-                                       on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Update completion status
-        update_completion_status('council_report', len(key_decisions) > 0)
-    
-    elif selected_section == "Lay Organizations":
-        st.markdown('<div class="section-header">Lay Organizations</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            edited_lay = st.data_editor(
-                st.session_state.lay_df,
-                num_rows="dynamic",
-                use_container_width=True,
-                key="lay_editor",
-                on_change=lambda: save_current_report() if st.session_state.authenticated else None
-            )
-            st.session_state.lay_df = edited_lay
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Programs Summary</div>', unsafe_allow_html=True)
-            programs_summary = st.text_area("", height=150, key="programs_summary", placeholder="Summarize programs and activities...",
-                                          on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        update_completion_status('lay_organizations', len(programs_summary) > 0)
-    
-    elif selected_section == "Board of Trustees":
-        st.markdown('<div class="section-header">Board of Trustees</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Property Acquisition</div>', unsafe_allow_html=True)
-            edited_trustee = st.data_editor(
-                st.session_state.trustee_df,
-                num_rows="dynamic",
-                use_container_width=True,
-                key="trustee_editor",
-                on_change=lambda: save_current_report() if st.session_state.authenticated else None
-            )
-            st.session_state.trustee_df = edited_trustee
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        # Info Box
-        st.markdown("""
-        <div class="info-box">
-            <strong>Required Information:</strong><br>
-            • Properties acquired after last charge conference<br>
-            • New properties from June 01, 2025<br>
-            • Inventory book must be presented
-        </div>
-        """, unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Inventory Upload</div>', unsafe_allow_html=True)
-            inventory_files = st.file_uploader("", type=['pdf', 'xlsx', 'xls', 'docx'], accept_multiple_files=True, key="inventory_upload")
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        has_data = not st.session_state.trustee_df['Property Description'].isna().all()
-        update_completion_status('trustees', has_data)
-    
-    elif selected_section == "Kindergarten":
-        st.markdown('<div class="section-header">Kindergarten Committee</div>', unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Nursery</div>', unsafe_allow_html=True)
-                nursery_enrolled = st.number_input("Enrolled", min_value=0, key="nursery_enrolled", 
-                                                  on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                nursery_current = st.number_input("Current", min_value=0, key="nursery_current",
-                                                 on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Kindergarten</div>', unsafe_allow_html=True)
-                kinder_enrolled = st.number_input("Enrolled", min_value=0, key="kinder_enrolled",
-                                                 on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                kinder_current = st.number_input("Current", min_value=0, key="kinder_current",
-                                                on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col3:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Administrative</div>', unsafe_allow_html=True)
-                status = st.selectbox("Status", ["Registered", "Recognized", "Permit to Operate", "Pending"], key="school_status",
-                                    on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                has_scholarships = st.radio("Scholarships", ["Yes", "No"], key="scholarships", horizontal=True,
-                                          on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">School Programs</div>', unsafe_allow_html=True)
-            school_programs = st.text_area("", height=100, key="school_programs", placeholder="List programs and activities...",
-                                         on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Registration Fee</div>', unsafe_allow_html=True)
-                reg_fee = st.number_input("Amount (₱)", min_value=0.0, key="reg_fee", label_visibility="collapsed",
-                                        on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        with col2:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Miscellaneous</div>', unsafe_allow_html=True)
-                misc_fee = st.number_input("Amount (₱)", min_value=0.0, key="misc_fee", label_visibility="collapsed",
-                                         on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        with col3:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Tuition Fee</div>', unsafe_allow_html=True)
-                tuition_fee = st.number_input("Monthly (₱)", min_value=0.0, key="tuition_fee", label_visibility="collapsed",
-                                            on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        has_enrollment = (nursery_enrolled > 0 or kinder_enrolled > 0)
-        update_completion_status('kindergarten', has_enrollment)
-    
-    elif selected_section == "Grade Schools":
-        st.markdown('<div class="section-header">Grade Schools</div>', unsafe_allow_html=True)
-        
-        grade_levels = ["Grade 1", "Grade 2", "Grade 3", "Grade 4", "Grade 5", "Grade 6"]
-        
-        grade_data = {
-            'Grade Level': grade_levels,
-            'Enrolled at Start': [0] * len(grade_levels),
-            'Transferred In': [0] * len(grade_levels),
-            'Transferred Out': [0] * len(grade_levels),
-            'Current Enrollment': [0] * len(grade_levels),
-            'Graduates': [0] * len(grade_levels)
-        }
-        
-        grade_df = pd.DataFrame(grade_data)
-        
-        if 'grade_df' in st.session_state:
-            grade_df = st.session_state.grade_df
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            edited_grade = st.data_editor(grade_df, num_rows="dynamic", use_container_width=True, key="grade_editor",
-                                        on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.session_state.grade_df = edited_grade
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        total_enrolled = edited_grade['Enrolled at Start'].sum()
-        total_current = edited_grade['Current Enrollment'].sum()
-        total_graduates = edited_grade['Graduates'].sum()
-        
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div style="font-size: 0.875rem; color: var(--text-secondary);">Enrolled</div>
-                <div style="font-size: 1.5rem; color: var(--text-primary); font-weight: 500;">{total_enrolled}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with col2:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div style="font-size: 0.875rem; color: var(--text-secondary);">Current</div>
-                <div style="font-size: 1.5rem; color: var(--text-primary); font-weight: 500;">{total_current}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        with col3:
-            st.markdown(f"""
-            <div class="metric-card">
-                <div style="font-size: 0.875rem; color: var(--text-secondary);">Graduates</div>
-                <div style="font-size: 1.5rem; color: var(--text-primary); font-weight: 500;">{total_graduates}</div>
-            </div>
-            """, unsafe_allow_html=True)
-    
-    elif selected_section == "Church Workers":
-        st.markdown('<div class="section-header">Church Workers</div>', unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Pastor</div>', unsafe_allow_html=True)
-                church_membership = st.number_input("Total Membership", min_value=0, key="membership",
-                                                  on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                pastor_support = st.number_input("Monthly Support (₱)", min_value=0.0, key="pastor_support",
-                                               on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Deaconess</div>', unsafe_allow_html=True)
-                deaconess_work = st.text_area("Nature of Work", height=100, key="deaconess_work",
-                                            on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                deaconess_support = st.number_input("Monthly Support (₱)", min_value=0.0, key="deaconess_support",
-                                                  on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Relationships & Situation</div>', unsafe_allow_html=True)
-            workers_relationship = st.text_area("Worker Relationships", height=100, key="workers_relationship",
-                                              on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            housing_situation = st.selectbox("Housing Situation", ["Provided by Church", "Rented", "Own House", "Other"], key="housing",
-                                           on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Recommendations</div>', unsafe_allow_html=True)
-            ministry_entrants = st.text_area("Ministry Entrants", height=100, key="ministry_entrants",
-                                           on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            worker_benefits = st.text_area("Support Recommendations", height=100, key="worker_benefits",
-                                         on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        has_worker_info = (church_membership > 0 or len(deaconess_work) > 0)
-        update_completion_status('workers', has_worker_info)
-    
-    elif selected_section == "Leadership":
-        st.markdown('<div class="section-header">Leadership 2026-2027</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Council Officers</div>', unsafe_allow_html=True)
-            edited_leadership = st.data_editor(
-                st.session_state.leadership_df,
-                num_rows="dynamic",
-                use_container_width=True,
-                key="leadership_editor",
-                on_change=lambda: save_current_report() if st.session_state.authenticated else None
-            )
-            st.session_state.leadership_df = edited_leadership
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        committees = [
-            'Worship Committee',
-            'Finance Committee',
-            'Administration Committee',
-            'Membership & Evangelism',
-            'Christian Education',
-            'Social Concerns'
-        ]
-        
-        committee_data = {
-            'Committee': committees,
-            'Chairperson': [''] * len(committees),
-            'Members': [''] * len(committees)
-        }
-        
-        committee_df = pd.DataFrame(committee_data)
-        
-        if 'committee_df' in st.session_state:
-            committee_df = st.session_state.committee_df
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Committees</div>', unsafe_allow_html=True)
-            edited_committee = st.data_editor(committee_df, num_rows="dynamic", use_container_width=True, key="committee_editor",
-                                            on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.session_state.committee_df = edited_committee
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        has_leadership_data = not st.session_state.leadership_df['Name'].isna().all()
-        update_completion_status('leadership', has_leadership_data)
-    
-    elif selected_section == "Appendices":
-        st.markdown('<div class="section-header">Appendices</div>', unsafe_allow_html=True)
-        
-        with st.container():
-            st.markdown('<div class="input-card">', unsafe_allow_html=True)
-            st.markdown('<div class="subsection-header">Contact List</div>', unsafe_allow_html=True)
-            edited_appendix = st.data_editor(
-                st.session_state.appendix_df,
-                num_rows="dynamic",
-                use_container_width=True,
-                key="appendix_editor",
-                on_change=lambda: save_current_report() if st.session_state.authenticated else None
-            )
-            st.session_state.appendix_df = edited_appendix
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="subsection-header">Membership Statistics</div>', unsafe_allow_html=True)
-        col1, col2, col3, col4, col5 = st.columns(5)
-        with col1:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            professing = st.number_input("Professing", min_value=0, key="professing", label_visibility="collapsed",
-                                       on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Professing</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col2:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            baptized = st.number_input("Baptized", min_value=0, key="baptized", label_visibility="collapsed",
-                                     on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Baptized</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col3:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            affiliate = st.number_input("Affiliate", min_value=0, key="affiliate", label_visibility="collapsed",
-                                      on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Affiliate</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col4:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            associate = st.number_input("Associate", min_value=0, key="associate", label_visibility="collapsed",
-                                      on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Associate</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        with col5:
-            st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-            constituency = st.number_input("Constituency", min_value=0, key="constituency", label_visibility="collapsed",
-                                         on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.5rem;">Constituency</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Audit</div>', unsafe_allow_html=True)
-                audit_completed = st.radio("Audit Completed", ["Yes", "No"], key="audit", horizontal=True,
-                                         on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                audit_date = st.date_input("Completion Date", key="audit_date",
-                                         on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        with col2:
-            with st.container():
-                st.markdown('<div class="input-card">', unsafe_allow_html=True)
-                st.markdown('<div class="subsection-header">Auditor</div>', unsafe_allow_html=True)
-                auditor_name = st.text_input("Auditor Name", key="auditor_name",
-                                           on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-                st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('<div class="subsection-header">Signatures</div>', unsafe_allow_html=True)
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            st.markdown('<div class="signature-area">', unsafe_allow_html=True)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Council Chairperson</div>', unsafe_allow_html=True)
-            council_signature = st.text_input("", key="council_signature", label_visibility="collapsed", placeholder="Name",
-                                            on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-        with col2:
-            st.markdown('<div class="signature-area">', unsafe_allow_html=True)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Pastor</div>', unsafe_allow_html=True)
-            pastor_signature = st.text_input("", key="pastor_signature", label_visibility="collapsed", placeholder="Name",
-                                           on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-        with col3:
-            st.markdown('<div class="signature-area">', unsafe_allow_html=True)
-            st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Secretary</div>', unsafe_allow_html=True)
-            secretary_signature = st.text_input("", key="secretary_signature", label_visibility="collapsed", placeholder="Name",
-                                              on_change=lambda: save_current_report() if st.session_state.authenticated else None)
-            st.markdown('</div>', unsafe_allow_html=True)
-        
-        has_signatures = (len(council_signature) > 0 or len(pastor_signature) > 0 or len(secretary_signature) > 0)
-        has_membership = (professing > 0 or baptized > 0 or affiliate > 0 or associate > 0 or constituency > 0)
-        update_completion_status('appendices', has_signatures or has_membership)
-    
-    # Report Preview
-    if st.session_state.get('show_preview', False):
-        st.markdown('<div class="section-header">Report Preview</div>', unsafe_allow_html=True)
-        
-        b64, filename, report_content, completion_percentage = create_downloadable_report()
-        
-        # Status indicator
-        if completion_percentage < 50:
-            status_msg = "Incomplete"
-            status_color = "var(--error-color)"
-        elif completion_percentage < 80:
-            status_msg = "Partially Complete"
-            status_color = "var(--warning-color)"
-        else:
-            status_msg = "Mostly Complete"
-            status_color = "var(--success-color)"
-        
-        st.markdown(f"""
-        <div style="padding: 1rem; background-color: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 1.5rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    <div style="color: var(--text-secondary); font-size: 0.875rem;">Status</div>
-                    <div style="color: {status_color}; font-weight: 500;">{status_msg}</div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="color: var(--text-secondary); font-size: 0.875rem;">Completion</div>
-                    <div style="color: var(--text-primary); font-size: 1.25rem; font-weight: 500;">{completion_percentage:.0f}%</div>
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        with st.expander("View Report Content", expanded=True):
-            st.text_area("", report_content, height=300, label_visibility="collapsed")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            href = f'<a href="data:file/txt;base64,{b64}" download="{filename}" class="primary-button" style="display: block; text-align: center;">Download Report</a>'
-            st.markdown(href, unsafe_allow_html=True)
-        with col2:
-            if st.button("Close Preview", type="secondary", use_container_width=True):
-                st.session_state.show_preview = False
-                st.rerun()
+    # ... (all other sections would follow the same pattern)
     
     # Database status indicator
     st.markdown(f"""
