@@ -1122,16 +1122,16 @@ else:
         st.markdown('<div style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;">NAVIGATION</div>', unsafe_allow_html=True)
         
         section_options = [
-            ("📋", "Church Information", "church_info"),
-            ("📊", "Council Report", "council_report"),
-            ("👥", "Lay Organizations", "lay_organizations"),
-            ("🏛️", "Board of Trustees", "trustees"),
-            ("🏫", "Kindergarten", "kindergarten"),
-            ("📚", "Grade Schools", "grade_schools"),
-            ("👨‍💼", "Church Workers", "workers"),
-            ("👑", "Leadership", "leadership"),
-            ("🙋", "Youth Ministry", "youth_ministry"),
-            ("📎", "Appendices", "appendices")
+            ("Church Information", "church_info"),
+            ("Council Report", "council_report"),
+            ("Lay Organizations", "lay_organizations"),
+            ("Board of Trustees", "trustees"),
+            ("Kindergarten", "kindergarten"),
+            ("Grade Schools", "grade_schools"),
+            ("Church Workers", "workers"),
+            ("Leadership", "leadership"),
+            ("Youth Ministry", "youth_ministry"),
+            ("Appendices", "appendices")
         ]
         
         selected_section = st.selectbox(
